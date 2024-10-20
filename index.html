@@ -1,0 +1,321 @@
+<!--
+    Heart Rate Zone Calculator
+    Author: Aron Marcus Serrano
+    Description: A web application to calculate heart rate zones based on age and resting heart rate.
+    Source: Inspired by https://www.omnicalculator.com/sports/heart-rate-zone
+    Date: October 20, 2024
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Rate Zone Calculator</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e2e2e2 0%, #ffffff 100%);
+            display: flex;
+            justify-content: flex-start; /* Align to left */
+            align-items: flex-start; /* Align to top */
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column; /* For responsiveness, stacking vertically */
+            align-items: center;
+            max-width: 1200px;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .calculator, .formula {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px; /* Increased max-width for larger view */
+        }
+
+        .formula {
+            max-width: 1000px; /* Increased max-width for formula section */
+            width: 100%;
+        }
+
+        h1 {
+            color: #3ec572;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 16px;
+            color: #333;
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 2px solid #93c4e0;
+            border-radius: 8px;
+            color: #333;
+            font-size: 16px;
+            text-align: left;
+            display: none; /* Hidden by default */
+        }
+
+        #error-message {
+            color: red;
+            font-size: 16px;
+            margin-top: 10px;
+            display: none; /* Hidden by default */
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 5px 0;
+            border-bottom: 1px solid #6e81d4;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        /* Style for the formula box */
+        .formula {
+            text-align: left;
+            background-color: #f7f7f7;
+            padding: 20px;
+            border: 2px solid #ddd;
+        }
+
+        .formula h2 {
+            color: #564caf;
+        }
+
+        .formula p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .formula code {
+            display: block;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .formula section {
+            margin-bottom: 20px;
+        }
+
+        .formula section h3 {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #3c76af;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .calculator, .formula {
+                max-width: 100%; /* Full width for mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Heart Rate Calculator Section -->
+        <div class="calculator">
+            <h1>Heart Rate Zone Calculator</h1>
+           
+            <label for="age">Age:</label>
+            <input type="number" id="age" placeholder="Enter your age" min="1" max="120">
+
+            <label for="resting-heart-rate">Resting Heart Rate (bpm):</label>
+            <input type="number" id="resting-heart-rate" placeholder="Enter resting heart rate" min="30" max="200">
+
+            <button id="calculate-btn">Calculate</button>
+
+            <div id="error-message"></div> <!-- Error message display -->
+
+            <div id="result-box">
+                <div id="result"></div>
+            </div>
+        </div>
+
+        <!-- Formula Explanation Section -->
+<div class="formula">
+    <h2>What Do the Zones Mean?</h2>
+    <ul>
+        <li>1.<strong> Zone  Recovery (Very Light, 50-60% HRR):</strong> Ideal for warming up, cooling down, or active recovery. This zone is perfect for low-intensity exercise and helps to improve your overall health and circulation.</li>
+        <li>2.<strong> Zone  Endurance (Light, 60-70% HRR):</strong> Used for building endurance and burning fat. Exercising in this zone is ideal for longer, steady-state sessions, improving your aerobic fitness.</li>
+        <li>3.<strong> Zone  Aerobic (Moderate, 70-80% HRR):</strong> This zone improves cardiovascular endurance and aerobic capacity. It's great for moderate-intensity exercise where you’re still able to maintain a conversation but starting to sweat.</li>
+        <li>4.<strong> Zone  Anaerobic (Hard, 80-90% HRR):</strong> Improves speed, power, and overall cardiovascular performance. You’ll be working hard in this zone, and it’s typically used for interval training or tempo runs.</li>
+        <li>5.<strong> Zone  VO2 max (Max Effort, 90-100% HRR):</strong> Used for short bursts of maximum effort, typically in high-intensity interval training (HIIT). This zone pushes your body to its limits and helps improve speed and muscle power.</li>
+    </ul>
+</div>
+
+<!-- Understanding Heart Rate Zones Section -->
+<div class="formula">
+    <h2>Understanding Heart Rate Zones</h2>
+    
+    <section>
+        <h3>Step 1: Maximum Heart Rate (MHR)</h3>
+        <p>To calculate your MHR, subtract your age from 220:</p>
+        <code>MHR = 220 - Age</code>
+    </section>
+
+    <section>
+        <h3>Step 2: Heart Rate Reserve (HRR)</h3>
+        <p>Subtract your Resting Heart Rate from the MHR to get the HRR:</p>
+        <code>HRR = MHR - Resting Heart Rate</code>
+    </section>
+
+    <section>
+        <h3>Step 3: Heart Rate Zones</h3>
+        <p>Use the HRR to calculate the different heart rate zones. The formulas below show how to calculate each zone:</p>
+        <code>
+            Zone 1 (50-60% HRR) = Resting Heart Rate + (0.5 to 0.6 * HRR) <br>
+            Zone 2 (60-70% HRR) = Resting Heart Rate + (0.6 to 0.7 * HRR) <br>
+            Zone 3 (70-80% HRR) = Resting Heart Rate + (0.7 to 0.8 * HRR) <br>
+            Zone 4 (80-90% HRR) = Resting Heart Rate + (0.8 to 0.9 * HRR) <br>
+            Zone 5 (90-100% HRR) = Resting Heart Rate + (0.9 to 1.0 * HRR)
+        </code>
+    </section>
+</div>
+
+    </div>
+
+    <py-script>
+        from js import document
+    
+        def calculate_heart_rate_zones(event):
+            """Calculate heart rate zones based on inputs."""
+            age_value = document.getElementById("age").value
+            resting_heart_rate_value = document.getElementById("resting-heart-rate").value
+            
+            # Initialize error message
+            error_message = ""
+    
+            # Check if fields are empty
+            if age_value == "" or resting_heart_rate_value == "":
+                error_message = "Please input digits for both Age and Resting Heart Rate before calculating."
+            else:
+                age = int(age_value)
+                resting_heart_rate = int(resting_heart_rate_value)
+    
+                # Check for validation errors
+                if age > 120:
+                    error_message += "Age cannot exceed more than 120 years. "
+                if resting_heart_rate > 200:
+                    error_message += "Resting heart rate cannot exceed more than 200 bpm."
+    
+            # Display error message if any
+            if error_message:
+                document.getElementById("error-message").innerText = error_message
+                document.getElementById("error-message").style.display = "block"
+                document.getElementById("result-box").style.display = "none"  # Hide the result box
+                return  # Exit the function
+    
+            # Calculate Maximum Heart Rate (MHR)
+            max_heart_rate = 220 - age
+    
+            # Calculate Heart Rate Reserve (HRR)
+            heart_rate_reserve = max_heart_rate - resting_heart_rate
+    
+            # Calculate heart rate zones with ranges and tips
+            zones = {
+                "Zone 1 (Very Light)": {
+                    "range": f"{resting_heart_rate + 0.5 * heart_rate_reserve:.2f} - {resting_heart_rate + 0.6 * heart_rate_reserve:.2f}",
+                    "tip": "Focus on warm-ups, cooldowns, or gentle yoga to improve circulation."
+                },
+                "Zone 2 (Light)": {
+                    "range": f"{resting_heart_rate + 0.6 * heart_rate_reserve:.2f} - {resting_heart_rate + 0.7 * heart_rate_reserve:.2f}",
+                    "tip": "Consider long walks, jogging, or cycling to build endurance."
+                },
+                "Zone 3 (Moderate)": {
+                    "range": f"{resting_heart_rate + 0.7 * heart_rate_reserve:.2f} - {resting_heart_rate + 0.8 * heart_rate_reserve:.2f}",
+                    "tip": "Try steady-state runs, aerobic classes, or swimming for a solid workout."
+                },
+                "Zone 4 (Hard)": {
+                    "range": f"{resting_heart_rate + 0.8 * heart_rate_reserve:.2f} - {resting_heart_rate + 0.9 * heart_rate_reserve:.2f}",
+                    "tip": "Incorporate interval training, hill sprints, or tempo runs for intensity."
+                },
+                "Zone 5 (Max Effort)": {
+                    "range": f"{resting_heart_rate + 0.9 * heart_rate_reserve:.2f} - {resting_heart_rate + heart_rate_reserve:.2f}",
+                    "tip": "Engage in short, high-intensity bursts like HIIT for peak performance."
+                },
+            }
+    
+            # Format the result
+            result_text = "<h3>Heart Rate Zones:</h3><ul>"
+            for zone, data in zones.items():
+                result_text += f"<li>{zone}: {data['range']} bpm - <em>{data['tip']}</em></li>"
+            result_text += "</ul>"
+    
+            # Hide error message and show result
+            document.getElementById("error-message").style.display = "none"
+            document.getElementById("result").innerHTML = result_text
+            document.getElementById("result-box").style.display = "block"  # Show the result box
+    
+        # Attach the calculation function to the button click
+        document.getElementById("calculate-btn").onclick = calculate_heart_rate_zones
+    </py-script>
+    
+    
+</body>
+</html>
